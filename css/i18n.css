@@ -1,0 +1,13 @@
+/* Interface language (js/i18n.js). Arabic is the original game; Indonesian and English swap the texts. Loaded last. */
+/* A translated text is a left-to-right run inside the right-to-left page: keep its punctuation and numbers in place. */
+html:not([data-lang="ar"]) .tr{unicode-bidi:isolate;direction:ltr}
+/* the cover's "Donasi" tag is the author's Indonesian word for the Arabic donate link: with a translated link it would say the same thing twice */
+html:not([data-lang="ar"]) .donId{display:none}
+/* the rules pages in Indonesian / English: one line per rule */
+html:not([data-lang="ar"]) .wrOne{direction:ltr;unicode-bidi:isolate;text-align:start}
+
+/* ---------- Indonesian / English: text reads left to right, short standalone texts are centred ----------
+   Only text is turned: the page arrangement, the board, the racks and the tiles stay right-to-left, and Arabic mode is untouched. */
+html:not([data-lang="ar"]) :is(p,li,h1,h2,h3,h4,summary,legend,label,details,.setNote,#dM,#jB,#toast,#mOvB,.hempty,.chEmpty,.tkEmpty,.wrNote,.wrLead,.wrWarn,.wrOne,.pwaNote,.setH,.setG,.setRowHead,.lbNote,.tkHint,.hh span,.mDesc){direction:ltr;text-align:left}
+html:not([data-lang="ar"]) :is(dialog>h2,.rdHead h2,.floatHandle,.fHead h2,#mOvT,#mOvB p,#toast,.hempty,.chEmpty,.tkEmpty,.coverSub,.resWin,.resNote,.resSub,#dM:not(.dmLeft),.lbCard>h2,.lbCard h2,.pwaBar,#bagInfo){text-align:center}
+html:not([data-lang="ar"]) :is(.rdHead h2,.floatHandle){flex:1}

@@ -1,0 +1,225 @@
+/* Online play. Loaded with the game but inert for local play: every rule is either scoped to the online-only elements (#lobby, #netBar,
+   .tile.back, .mhP) or to html[data-online] (set by js/online/session.js while an online match is open). Colours come from the theme tokens. */
+
+/* ---------- cover: the second door ---------- */
+
+/* ---------- lobby: full screen, above the cover ---------- */
+.lobby{position:fixed;inset:0;z-index:60;display:grid;place-items:center;overflow:auto;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));background:linear-gradient(var(--bg-page-1),var(--bg-page-2));color:var(--text-main)}
+.lobby[hidden]{display:none}
+.lbCard{width:min(560px,100%);display:grid;gap:14px;padding:clamp(16px,4vw,26px);border-radius:16px;background:var(--panel-bg);border:1px solid var(--panel-line);box-shadow:0 12px 40px #0007}
+.lbT{margin:0;font-size:1.35rem;color:var(--accent-text)}
+.lbCard h3{margin:0 0 6px;font-size:1rem}
+.lbLabel{display:block;margin-bottom:4px;font-size:.85rem;opacity:.85}
+.lbNote{margin:0;font-size:.9rem;opacity:.85;min-height:1.2em}.lbNote.bad{color:var(--time-crit,#ff8a8a);opacity:1}
+.lbInput{width:100%;box-sizing:border-box;padding:.65em .8em;font:inherit;font-size:1.05rem;color:var(--text-main);background:var(--surface-inset);border:1px solid var(--panel-line);border-radius:10px}
+.lbInput:focus{outline:2px solid var(--focus);outline-offset:1px}
+.lbCodeIn{text-align:center;letter-spacing:.25em;font-weight:700;text-transform:uppercase;margin-bottom:8px}
+.lbSplit{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lbBox{display:grid;align-content:start;gap:6px;padding:12px;border-radius:12px;background:var(--surface-inset)}
+.lbFoot{display:flex;flex-wrap:wrap;gap:8px}.lbFoot .btn{flex:1 1 140px;min-height:44px}
+.lbRow{display:flex;flex-wrap:wrap;gap:8px}.lbRow .btn{flex:1 1 90px;min-height:44px}
+.lbOpt[aria-pressed="true"]{background:linear-gradient(var(--btn-main-1),var(--btn-main-2));color:var(--btn-main-text);outline:2px solid var(--accent);outline-offset:-2px}
+.lbCodeBox{display:grid;gap:8px;justify-items:center;text-align:center}
+.lbCodeBox .lbRow{justify-content:center;width:100%}.lbCodeBox .lbRow .btn{flex:0 1 180px}
+.lbCode{font-size:clamp(2rem,10vw,3rem);letter-spacing:.2em;padding-inline-start:.2em;color:var(--accent-text);font-family:var(--font)}
+.lbSeats{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lbSeat{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;background:var(--surface-inset);border:1px solid transparent}
+.lbSeat.me{border-color:var(--accent)}.lbSeat.empty{opacity:.65;border:1px dashed var(--panel-line)}
+.lbTag{font-size:.8rem;padding:.2em .7em;border-radius:999px;background:var(--chip-bg);border:1px solid var(--chip-line)}
+.lbTag.ok{color:#8fe3a8}.lbTag.host{color:var(--accent-text)}
+.lbRules{display:grid;gap:10px}
+@media(max-width:480px){.lbSplit{grid-template-columns:1fr}}
+
+/* ---------- the match card: Player 1 VS Player 2, the room details underneath ----------
+   Deliberately minimal. Two rows of FIXED structure, so nothing around the card ever moves: the scoreboard (name, score, clock per player; the player on turn is outlined,
+   a small dot shows only when someone is NOT connected) and a slim info row (room code, a status line that appears only when there is something to say, pause, surrender).
+   The card answers to ITS OWN width (container query), so the same markup serves the full-width phone layout, a side column and a floating module.
+   In the Floating Workspace it is a movable module: drag the grip (double-click resets its spot); it is remembered per device like the other popups. */
+.netBar{display:grid;gap:4px;box-sizing:border-box;padding:8px 8px 6px;overflow:hidden;border-radius:14px;background:var(--panel-bg);border:1px solid var(--panel-line);font-size:.9rem;container:netbar/inline-size;contain:paint}
+.netBar[hidden]{display:none}
+
+/* scoreboard */
+.mhVs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;column-gap:4px}
+.mhP{--pc:var(--player-1);display:grid;min-width:0;padding:5px 12px 6px;border-radius:10px;border:1.5px solid transparent;transition:border-color .3s,background-color .3s}
+.mhP[data-seat="1"]{--pc:var(--player-2)}
+.mhP[data-on="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.mhTop{display:flex;align-items:center;gap:6px;min-width:0;line-height:1.3}
+.mhName{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:700;font-size:calc(1rem*var(--ui,1));color:var(--pc)}
+.mhP:not([data-on="true"]) .mhName{opacity:.8}
+.mhYou{display:none;flex:none;font-size:.68rem;opacity:.6}
+.mhP[data-you="true"] .mhYou{display:inline}
+.mhDot{display:none;flex:none;width:.5rem;height:.5rem;border-radius:50%;background:var(--time-low,#e0a030)}
+.mhP[data-online="false"] .mhDot{display:inline-block}
+.mhBot{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.mhScore{display:inline-block;font-size:calc(1.65rem*var(--ui,1));line-height:1.15;font-weight:700;color:var(--pc);font-variant-numeric:tabular-nums}
+.mhScore.pop{animation:pop .5s}
+.mhClock{font:600 calc(.98rem*var(--ui,1)) var(--font);font-variant-numeric:tabular-nums;direction:ltr;opacity:.6}
+.mhP[data-on="true"] .mhClock{opacity:1}
+.mhClock.wait{opacity:.4}.mhClock.low{color:var(--time-low)}.mhClock.crit{color:var(--time-crit)}.mhClock.out{animation:none}
+@media(prefers-reduced-motion:no-preference){.mhClock.crit:not(.out){animation:pulse 1s infinite}}
+.mhVsMark{font:700 .6rem/1 'ScrabbleMix',serif;letter-spacing:.08em;direction:ltr;opacity:.45;pointer-events:none}
+
+/* info row */
+.mhInfo{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;box-sizing:border-box;height:38px;padding:5px 4px 0;border-top:1px solid color-mix(in srgb,var(--panel-line) 70%,transparent);min-width:0}
+.netDot{flex:none;width:.5rem;height:.5rem;border-radius:50%;background:var(--panel-line)}.netDot.on{background:#6ee09a}.netDot.warn{background:var(--time-low,#e0a030)}
+.netState{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.84rem;opacity:.85}
+.netBar .btn{flex:none;height:30px;min-height:0;padding:0 .8em;font-size:.82rem;white-space:nowrap}
+.netBar .btn[hidden]{display:none}
+.netGrip{display:none}
+.netRoom{flex:none;height:26px;padding:0 .3em;font:700 .8rem ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:var(--accent-text);background:none;border:0;border-radius:6px;opacity:.9;cursor:pointer}
+.netRoom:hover{opacity:1;text-decoration:underline dotted}
+.netRoom:empty{display:none}.netRoom:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+
+/* a narrow card (a side column, a landscape phone, a small floating module) gets a little smaller and spends the info row on its buttons */
+@container netbar (max-width:270px){
+  .mhP{padding:4px 7px 5px}.mhYou{display:none!important}
+  .mhName{font-size:calc(.92rem*var(--ui,1))}.mhScore{font-size:calc(1.35rem*var(--ui,1))}.mhClock{font-size:calc(.88rem*var(--ui,1))}
+  .mhInfo{gap:5px;padding-inline:2px}.netBar .btn{padding:0 .5em}.netRoom{letter-spacing:.05em;font-size:.74rem}
+}
+
+/* Floating Workspace: the card is a module like the others: movable by the grip, resizable from the corner handle on BOTH axes. Until a height is set it is as tall as its content;
+   a larger box lets the scoreboard take the extra room, nothing overflows (the card clips, the handle stays in the corner). */
+html[data-floating="true"] #netBar{position:fixed;inset:auto;margin:0;z-index:34;width:min(calc(100vw - 16px),380px);height:auto}
+html[data-floating="true"] #netBar .mhInfo{padding-right:28px}   /* clear the corner resize handle */
+html[data-floating="true"] #netBar[style*="height"]{grid-template-rows:minmax(0,1fr) auto}
+html[data-floating="true"] #netBar[style*="height"] .mhP{align-content:center}
+html[data-floating="true"] #netBar .flGrip{z-index:6}
+html[data-floating="true"] .netGrip{display:inline-grid;place-items:center;flex:none;width:28px;height:30px;cursor:grab;touch-action:none;border-radius:6px;opacity:.8;-webkit-user-select:none;user-select:none}
+.netGrip:hover,.netGrip:focus-visible{opacity:1}.netGrip:active{cursor:grabbing}
+.netGrip .ic{width:18px;height:18px;stroke-width:3;stroke-linecap:round}
+
+/* ---------- online: ONE rack, mine ----------
+   The opponent's tiles are never shown (ui.js does not even draw them) and their panel is gone: the card above carries their name, score, clock and tile count.
+   My panel keeps the turn glow; its header (name / clock / score) lives on the card, so a one-line caption says whose turn it is. */
+html[data-online] .panel[data-you="false"],html[data-online] .phead{display:none}
+html[data-online] .players{grid-template-columns:minmax(0,1fr)}
+.rkCap{display:none}
+html[data-online] .rkCap{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;font-size:.85rem;line-height:1.3}
+.rkT{flex:none;font-weight:700;color:var(--pc)}
+.rkS{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;opacity:.8}
+.rkCap[data-on="true"] .rkS{opacity:1;color:var(--accent-text);font-weight:700}
+@media(orientation:landscape) and (max-height:559px){html[data-online] .rkCap{margin-bottom:3px;font-size:.78rem}.mhP{padding:3px 8px 4px}.mhInfo{height:34px;padding-top:3px}.netBar{padding:5px 6px 4px}}
+
+/* Duel layout, online: the card and my rack take the two places the two player panels had (card first, my rack after it); the page is never wider than before. */
+html[data-online][data-layout="duel"] #netBar{grid-area:net}
+html[data-online][data-layout="duel"] :is(#pn0,#pn1){grid-area:me}   /* :is() carries the id's weight, which is what beats the duel rule that names #pn0 / #pn1 */
+@media(min-height:560px),(orientation:portrait){
+html[data-online][data-layout="duel"][data-hist="drawer"][data-pdock] .app{grid-template-areas:"toast toast" "net net" "board board" "me me" "ctrls ctrls"}
+html[data-online][data-layout="duel"][data-hist="docked"][data-pdock] .app{grid-template-areas:"toast toast" "net net" "board board" "me me" "ctrls ctrls" "hist hist"}
+}
+@media(orientation:landscape) and (min-width:700px) and (min-height:560px){
+html[data-online][data-layout="duel"][data-hist="drawer"][data-pdock] .app{grid-template-areas:". toast ." "net board me" "net ctrls me"}
+html[data-online][data-layout="duel"][data-hist="docked"][data-pdock] .app{grid-template-areas:". toast ." "net board me" "net ctrls me" "hist hist hist"}
+html[data-online][data-layout="duel"][data-swap="true"][data-hist="drawer"][data-pdock] .app{grid-template-areas:". toast ." "me board net" "me ctrls net"}
+html[data-online][data-layout="duel"][data-swap="true"][data-hist="docked"][data-pdock] .app{grid-template-areas:". toast ." "me board net" "me ctrls net" "hist hist hist"}
+html[data-online][data-layout="duel"] #netBar{align-self:end}
+html[data-online][data-layout="duel"][data-pdock="top"] #netBar{align-self:start}
+html[data-online][data-layout="duel"][data-pdock="middle"] #netBar{align-self:center}
+}
+
+/* ---------- opponent's rack, last move ---------- */
+.tile.back{background:linear-gradient(145deg,var(--tile-cur-1,#a9803f),var(--tile-cur-2,#7a5726));box-shadow:inset 0 0 0 2px #0003;opacity:.9;cursor:default}
+.tile.back::after{content:"";position:absolute;inset:22%;border-radius:50%;border:2px solid #0003}
+/* Part of the move just played: a thin ring along the tile's edge (it can never cover the letter) plus a small corner pip. Both scale with the board, there is no pixel floor on the pip,
+   and it is dropped on a tiny board where the ring alone says it. */
+.sq.lm .tile{box-shadow:inset 0 1px 0 #fff9,inset 0 0 0 max(1.5px,.42cqw) var(--accent),0 0 0 1px var(--tile-edge)}
+.sq.lm:not(.wf)::after{content:"";position:absolute;inset-block-start:9%;inset-inline-start:9%;width:.9cqw;height:.9cqw;border-radius:50%;background:var(--accent);box-shadow:0 0 0 1px #0006;pointer-events:none;z-index:2}
+@container board (max-width:339px){.sq.lm::after{display:none}}
+
+/* ---------- online mode: what only makes sense on one shared screen is out of the way ---------- */
+html[data-online] #bNew,html[data-online] #nmH,html[data-online] #nmB,html[data-online] #bPause{display:none}   /* online has its own pause in the match panel */
+body.lobbyOn{overflow:hidden}
+
+/* ---------- live preview: the opponent's tentative tiles, SOLID, as the mover sees them (js/online/ghost.js) ----------
+   A real .tile (pending look, their colour, point value) in an empty square, with the pending tile's cast shadow. No transparency, no dashes, no fade-in:
+   what you see is what is on their board right now. It cannot be picked, dragged or hovered, and screen readers skip it. */
+.sq.gh{z-index:1}
+.sq.gh::before{content:"";position:absolute;inset:0;border-radius:12%;pointer-events:none;box-shadow:0 max(1px,.35cqw) max(2px,.75cqw) var(--tile-cast,#000b);transform:translateY(max(1px,.55cqw)) scale(1.04);opacity:.65}
+.sq.gh .tile.ghostT{pointer-events:none;cursor:default;opacity:1;transform:none;animation:none}
+
+/* ---------- pause: nothing to study while the clocks are stopped ---------- */
+
+/* ---------- word rules (Settings, Tahkim dialog, waiting room) ---------- */
+.wr{display:grid;gap:8px;font-size:.92rem;line-height:1.6;text-align:start}
+.wrH{margin:6px 0 0;font-size:.95rem}.wrH.ok{color:#8fe3a8}.wrH.no{color:var(--time-crit,#ff8a8a)}
+.wrList{margin:0;padding:0;list-style:none;display:grid;gap:6px}.wrList.chk{list-style:decimal inside}
+.wrList li{display:grid;gap:1px;padding:6px 8px;border-radius:8px;background:var(--surface-inset)}
+.wrList.ok li{border-inline-start:3px solid #6ee09a}.wrList.no li{border-inline-start:3px solid var(--time-crit,#ff8a8a)}
+.wrId{font-size:.8rem;opacity:.75}.wrEx{display:inline-block;margin-inline:.3em;padding:0 .5em;border-radius:6px;background:var(--chip-bg);border:1px solid var(--chip-line);font-weight:700}
+.wrLead,.wrNote{margin:0;display:grid;gap:2px}
+.wrBox{margin:6px 0;border:1px solid var(--panel-line);border-radius:10px;padding:6px 10px}.wrBox>summary{cursor:pointer;font-weight:700;min-height:32px;display:flex;align-items:center}
+.wrBox[open]{max-height:50vh;overflow:auto}
+.wrPanel{max-height:46vh;overflow:auto}
+.lbNote.tech{font:.75rem ui-monospace,monospace;opacity:.7;word-break:break-all;direction:ltr;text-align:left}
+
+/* ---------- tahkim: the reason form (challenger) ---------- */
+.tkLbl{display:block;font-weight:700;margin-top:2px}
+.tkReason{width:100%;min-height:5.2em;padding:.55em .7em;resize:vertical;font:inherit;font-size:1rem;line-height:1.5;color:var(--text-main);background:var(--surface-inset);border:2px solid var(--dialog-line);border-radius:10px}
+.tkReason:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+.tkMeta{display:flex;justify-content:space-between;gap:10px;font-size:.82rem;opacity:.85;line-height:1.5}
+.tkN{flex:none;font-variant-numeric:tabular-nums}
+.tkWhy{padding:6px 10px;border-radius:8px;background:var(--surface-inset);border-inline-start:4px solid var(--accent);overflow-wrap:anywhere}
+.wrWarn{margin:0;padding:6px 10px;border-radius:8px;display:grid;gap:2px;background:color-mix(in srgb,var(--verdict-bad) 14%,transparent);border-inline-start:4px solid var(--verdict-bad);font-size:.9rem;line-height:1.6}
+
+/* ---------- match bar buttons (pause, surrender): icon / icon + label / text, exactly like the control buttons (Settings > التخطيط > أزرار التحكم) ---------- */
+.netBar .btn:has(.ic){display:inline-flex;align-items:center;justify-content:center;gap:.35em;position:relative}
+.netBar .btn .ic{width:1.25em;height:1.25em}
+.netBar .btn .bagBadge[hidden]{display:none}
+html[data-bstyle="text"] .netBar .ic,html[data-bstyle="text"] .netBar .bagBadge{display:none}
+html[data-bstyle="icon"] .netBar .btn:has(.ic){width:38px;padding:0}
+html[data-bstyle="icon"] .netBar .btn .ic{width:1.45em;height:1.45em}
+html[data-bstyle="icon"] .netBar .btn .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+html[data-bstyle="iconlabel"] .netBar .btn:has(.ic){flex-direction:column;gap:0;line-height:1;padding:0 .6em;min-width:48px}
+html[data-bstyle="iconlabel"] .netBar .btn .lbl{font-size:.62rem;font-weight:600}
+html[data-bstyle="iconlabel"] .netBar .btn .ic{width:1.15em;height:1.15em}
+html[data-bstyle="iconlabel"] .netBar .bagBadge{display:none}   /* the count is part of the label here */
+.netBar .btn .bagBadge{inset-block-start:1px;inset-inline-end:1px;min-width:1.3em;font-size:.62rem;line-height:1.3;z-index:1}   /* inside the bar: it clips what sticks out */
+html[data-bstyle="icon"][data-binfo] .netBar .btn .bagBadge:not([hidden]){display:block}
+html[data-floating="true"][data-bstyle="icon"] #netBar .btn:has(.ic){flex:none;width:38px}
+html[data-floating="true"][data-bstyle="icon"] #netBar[style*="height"] .btn:has(.ic){align-self:center;height:38px}
+
+/* too narrow for a status line (a very small floating card): the dot says connected / not, and the line stays for screen readers */
+@container netbar (max-width:240px){
+  .netState{position:absolute;width:1px;height:1px;margin:0;padding:0;overflow:hidden;clip-path:inset(50%)}
+  html[data-floating="true"] #netBar .mhInfo{padding-right:24px}
+  html[data-floating="true"] .netGrip{width:22px}
+  html[data-bstyle="icon"] .netBar .btn:has(.ic){width:32px;padding:0}
+}
+
+/* ---------- Word log tabs + match chat (v5.6) ---------- */
+.hPane{display:flex;flex-direction:column;flex:1;min-height:0}.hPane[hidden]{display:none}
+.hTabs{display:flex;gap:4px;margin:0 0 8px;flex:none}
+.hTab{position:relative;flex:1 1 0;min-height:36px;padding:2px 6px;border-radius:9px;border:1px solid var(--panel-line);background:var(--surface-inset);color:inherit;font:inherit;font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.hTab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink,#052e16);border-color:var(--accent)}
+.hTab:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+.hBadge{min-width:1.35em;height:1.35em;padding:0 .3em;border-radius:999px;background:#e11d48;color:#fff;font:700 .72rem/1.35em system-ui,sans-serif;text-align:center;box-sizing:border-box}
+.hBadge[hidden]{display:none}
+.hBadge.urgent{background:#f59e0b;color:#1f1300;animation:chPulse 1.6s ease-in-out infinite}
+@keyframes chPulse{50%{transform:scale(1.18)}}
+@media(prefers-reduced-motion:reduce){.hBadge.urgent{animation:none}}
+#bLog{position:relative}
+#bLog[data-unread]::after,#hToggle[data-unread]::after{content:attr(data-unread);position:absolute;top:-7px;inset-inline-end:-7px;min-width:1.35em;height:1.35em;padding:0 .3em;box-sizing:border-box;border-radius:999px;background:#e11d48;color:#fff;font:700 .72rem/1.35em system-ui,sans-serif;text-align:center;pointer-events:none}
+.chTop{display:flex;align-items:center;gap:8px;margin-block-end:6px;flex:none}
+.chNote{flex:1;font-size:.78rem;opacity:.75;line-height:1.3}
+.chMute{flex:none;min-height:30px;height:30px;padding:0 .6em;font-size:.8rem;display:inline-flex;align-items:center;gap:5px}
+.chMute .ic{width:16px;height:16px}.chMute .chSlash{display:none}.chMute[aria-pressed="true"] .chSlash{display:block}
+.chLog{flex:1;min-height:0;overflow:auto;list-style:none;margin:0;padding:2px 2px 6px;display:flex;flex-direction:column;gap:6px;overscroll-behavior:contain}
+.chMsg{display:grid;grid-template-columns:1fr auto;gap:1px 8px;max-width:88%;padding:6px 10px;border-radius:12px;background:var(--surface-inset);border:1px solid var(--panel-line);overflow-wrap:anywhere;line-height:1.5;font-size:.98rem}
+.chMsg.mine{align-self:flex-start;border-start-start-radius:3px;background:color-mix(in srgb,var(--accent) 16%,var(--surface-inset));border-color:color-mix(in srgb,var(--accent) 45%,var(--panel-line))}
+.chMsg.theirs{align-self:flex-end;border-start-end-radius:3px}
+.chWho{grid-column:1/-1;font-size:.74rem;font-weight:700;opacity:.8}
+.chMsg[data-o="0"] .chWho{color:var(--player-1)}.chMsg[data-o="1"] .chWho{color:var(--player-2)}
+.chTx{grid-column:1;white-space:pre-wrap}
+.chAt{grid-column:2;align-self:end;font-size:.68rem;opacity:.6;direction:ltr}
+.chEmpty{opacity:.7;text-align:center;padding:14px 8px;font-size:.92rem}
+.chQuick{display:flex;gap:6px;overflow-x:auto;padding:4px 0;flex:none;scrollbar-width:none}.chQuick::-webkit-scrollbar{display:none}
+.chChip{flex:none;min-height:32px;height:32px;padding:0 .8em;font-size:.82rem;border-radius:999px;white-space:nowrap}
+.chForm{display:flex;gap:6px;align-items:flex-end;flex:none;padding-block-start:4px}
+.chForm textarea{flex:1;min-width:0;resize:none;max-height:92px;padding:7px 10px;border-radius:10px;border:1px solid var(--panel-line);background:var(--surface-inset);color:inherit;font:inherit;font-size:1rem;line-height:1.4}
+.chForm textarea:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+.chForm .btn{flex:none;min-height:40px}
+.chToast{position:fixed;top:max(10px,env(safe-area-inset-top));inset-inline:12px;margin-inline:auto;width:fit-content;max-width:min(92vw,420px);z-index:60;display:flex;gap:8px;align-items:baseline;padding:9px 14px;border-radius:14px;border:2px solid var(--accent);background:var(--dialog-bg);color:var(--text-main);box-shadow:0 8px 24px #000a;font:inherit;font-size:.98rem;text-align:start;cursor:pointer;animation:chIn .18s ease-out}
+.chToast[hidden]{display:none}
+.chToastWho{flex:none;color:var(--accent-text)}.chToastTx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes chIn{from{opacity:0;transform:translateY(-8px)}}
+@media(prefers-reduced-motion:reduce){.chToast{animation:none}}

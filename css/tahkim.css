@@ -1,0 +1,75 @@
+/* Tahkim discussion window (online): js/online/tahkim-ui.js. A focused modal card (cannot be minimized; only the rules fold) over a blurred, dimmed backdrop, like the pause screen.
+   The game behind it is also locked by the server and by data-tahkim below. Colours come from the theme tokens. z-index 54/55: above the floating popups (<= 50), below native modals and the notice cards (9999). */
+.tkBackdrop[hidden]{display:none}
+.tkBackdrop{position:fixed;inset:0;z-index:54;background:color-mix(in srgb,var(--bg-page-1,#000) 45%,#000 55%);opacity:.72;-webkit-backdrop-filter:blur(10px) saturate(.8);backdrop-filter:blur(10px) saturate(.8);animation:tkFade .25s ease-out both}
+@keyframes tkFade{from{opacity:0}to{opacity:.72}}
+.tkPanel[hidden]{display:none}
+.tkPanel{position:fixed;z-index:55;inset:0;margin:auto;width:min(480px,calc(100vw - 24px));height:min(680px,calc(100dvh - 24px));animation:tkIn .28s cubic-bezier(.2,.8,.2,1) both;outline:none;
+  display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;border-radius:16px;background:var(--dialog-bg);color:var(--text-main);border:1px solid var(--dialog-line);box-shadow:0 18px 50px #000b;overscroll-behavior:contain}
+@keyframes tkIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.tkHead{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--panel-line)}
+.tkHeadT{flex:1 1 auto;min-width:0}
+.tkHead h2{margin:0;font-size:1.05rem;color:var(--accent-text);outline:none}
+.tkSub{font-size:.78rem;opacity:.75}
+.tkWords{flex:none;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:12px 10px 4px}
+.tkWord{font-family:var(--font);font-size:clamp(1.7rem,7vw,2.3rem);font-weight:700;line-height:1.35;padding:.05em .7em;border-radius:12px;color:var(--accent-ink);background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 30%,transparent),0 6px 18px #0006;overflow-wrap:anywhere}
+.tkWords.many .tkWord{font-size:clamp(1.3rem,5.5vw,1.8rem)}
+.tkMark{color:var(--accent-ink);background:var(--accent);border-radius:5px;padding:0 .25em;font-weight:700}
+.tkWhyWho{font-weight:700}
+.tkLeave{color:var(--time-crit,#ff8a8a)}.tkLeave .ic{width:1.2em;height:1.2em}
+.tkHb{flex:none;min-height:36px;min-width:40px;padding:0 .8em;font-size:.9rem}
+.tkRulesWrap{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;margin:8px 10px 0;border:1px solid var(--panel-line);border-radius:10px;overflow:hidden}
+.tkRulesBtn{flex:none;display:flex;align-items:center;justify-content:space-between;min-height:40px;padding:0 12px;font:inherit;font-weight:700;color:var(--text-main);background:var(--panel-bg);border:0;cursor:pointer}
+.tkRulesBtn:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
+.tkChev{width:.6em;height:.6em;border-inline-end:2px solid currentColor;border-block-end:2px solid currentColor;transform:rotate(45deg);transition:transform .2s}
+.tkRulesBtn[aria-expanded="true"] .tkChev{transform:rotate(-135deg)}
+.tkRulesBox{flex:0 1 auto;min-height:0;max-height:36dvh;overflow:auto;padding:8px 10px;border-top:1px solid var(--panel-line);background:var(--surface-inset);overscroll-behavior:contain}
+.tkRulesBox[hidden]{display:none}
+.tkAcc{margin:0 0 6px;border:1px solid var(--panel-line);border-radius:10px;background:var(--panel-bg)}
+.tkAcc>summary{display:grid;gap:1px;padding:8px 10px;min-height:40px;cursor:pointer;font-weight:700;list-style:none}
+.tkAcc>summary::-webkit-details-marker{display:none}
+.tkAcc>summary::after{content:"＋";position:absolute;inset-inline-end:12px}
+.tkAcc{position:relative}.tkAcc[open]>summary::after{content:"－"}
+.tkAcc>summary:focus-visible{outline:3px solid var(--focus);outline-offset:-3px;border-radius:10px}
+.tkAccB{padding:2px 10px 10px}
+.tkTiles{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.tkWhy2{flex:none;margin:8px 10px 0;padding:6px 10px;border-radius:8px;background:var(--surface-inset);border-inline-start:4px solid var(--accent);font-size:.92rem;line-height:1.5;overflow-wrap:anywhere;max-height:4.6em;overflow:auto}
+.tkLog{flex:1 1 90px;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:8px 10px;overscroll-behavior:contain}
+.tkEmpty{margin:auto;text-align:center;opacity:.75;font-size:.92rem;line-height:1.6}
+.tkMsg{display:grid;gap:2px;max-width:86%;align-self:flex-start;padding:6px 10px;border-radius:12px 12px 12px 4px;background:var(--surface-inset);border:1px solid var(--panel-line);overflow-wrap:anywhere}
+.tkMsg.mine{align-self:flex-end;border-radius:12px 12px 4px 12px;background:color-mix(in srgb,var(--accent) 18%,var(--surface-inset));border-color:var(--accent)}
+.tkWho{font-size:.75rem;opacity:.8;font-weight:700}.tkTxt{font-size:1rem;line-height:1.55;white-space:pre-wrap}.tkAt{font-size:.7rem;opacity:.6;justify-self:end;direction:ltr}
+.tkVerdict{flex:none;display:grid;gap:6px;padding:8px 10px;border-top:1px solid var(--panel-line);background:var(--panel-bg)}
+.tkChips{font-size:.85rem;font-weight:700}
+.tkStatus{font-size:.85rem;line-height:1.5;opacity:.92;min-height:2.6em}
+.tkActs{display:flex;flex-wrap:wrap;gap:6px}
+.tkActs .btn{flex:1 1 auto;min-height:42px;padding:0 .8em;font-size:.95rem}
+.tkPick{flex:1 1 40%!important}.tkPick[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:-3px}
+.tkConfirm{flex:2 1 60%!important}.tkWd[hidden]{display:none}
+.tkComposer{flex:none;display:flex;gap:6px;align-items:flex-end;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px)) 10px;border-top:1px solid var(--panel-line)}
+.tkComposer textarea{flex:1 1 auto;min-width:0;max-height:96px;resize:none;padding:.5em .7em;font:inherit;font-size:1rem;line-height:1.4;color:var(--text-main);background:var(--surface-inset);border:2px solid var(--dialog-line);border-radius:10px;box-sizing:border-box}
+.tkComposer textarea:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+.tkComposer .btn{flex:none;min-height:42px;padding:0 1em}
+@media(prefers-reduced-motion:reduce){.tkPanel,.tkBackdrop{animation:none}}
+
+/* phones, portrait: nearly full screen */
+@media(max-width:699px) and (orientation:portrait){.tkPanel{width:calc(100vw - 16px);height:calc(100dvh - 16px - env(safe-area-inset-bottom))}}
+/* short / landscape: compact header, smaller word chip, the rules take the conversation's place while open */
+@media(max-height:560px){
+  .tkPanel{width:min(94vw,560px);height:calc(100dvh - 12px)}
+  .tkHead{padding:4px 8px}.tkHb{min-height:32px}.tkWords{padding:6px 10px 0}.tkWord{font-size:1.4rem}.tkWhy2{margin-top:4px;padding:3px 8px;max-height:3.2em}
+  .tkVerdict{padding:6px 8px;gap:4px}.tkStatus{min-height:0;font-size:.78rem}.tkActs .btn{min-height:36px}.tkComposer{padding-block:6px}.tkComposer .btn{min-height:36px}
+}
+@media(max-height:480px){.tkPanel.rulesOn .tkLog,.tkPanel.rulesOn .tkWhy2,.tkPanel.rulesOn .tkWords{display:none}.tkPanel.rulesOn .tkRulesWrap{flex:1 1 0}.tkPanel.rulesOn .tkRulesBox{max-height:none;flex:1 1 0}}
+
+/* the lock: nothing on the board or the racks can be touched while a Tahkim is open (the server refuses it too) */
+html[data-tahkim] .board,html[data-tahkim] .rack{pointer-events:none}
+html[data-tahkim] .board,html[data-tahkim] .rack{filter:saturate(.7)}
+
+/* Tahkim records in the match history (word log) */
+.hTk{flex:none;margin-top:8px;border:1px solid var(--panel-line);border-radius:10px;max-height:40%;overflow:auto}
+.hTk>summary{cursor:pointer;padding:6px 10px;min-height:32px;font-weight:700;display:flex;align-items:center}
+.hTkL{list-style:none;margin:0;padding:0 8px 8px;display:grid;gap:6px}
+.hTkI{padding:6px 8px;border-radius:8px;background:var(--surface-inset);border-inline-start:4px solid var(--accent);font-size:.9rem;line-height:1.55;overflow-wrap:anywhere}
+.hTkI .v{font-weight:700}.hTkI .v.valid{color:var(--verdict-ok)}.hTkI .v.invalid{color:var(--verdict-bad)}
+.hTkI .m{opacity:.75;font-size:.8rem}
