@@ -1,0 +1,68 @@
+/* The turn controls: one dock that reshapes itself. Icons only, no words; every button keeps its name in aria-label and its tooltip.
+     at rest   swap · pass · undo                          + the small tools (judge, word log, pause, settings, new game)
+     building  cancel · submit with the live score          (the tools fold away so nothing competes)
+     swapping  cancel · confirm, with the number of tiles picked
+   js/ui.js sets data-st (state), data-p (whose turn: lights the edge in that player's colour) and data-wait (the other side is thinking: the dock goes dark).
+   Default layouts: the dock is a glass pill and the buttons morph (width / opacity). Floating Workspace: the same two states, but buttons are simply shown or hidden
+   so the module's own fit logic (js/float-fit.js) keeps working; the tools live in their own module there. */
+#ctrls{--pc:var(--accent);--bw:calc(46px*var(--btn-scale,1));--tw:calc(36px*var(--btn-scale,1));--ez:cubic-bezier(.2,.9,.3,1)}
+#ctrls[data-p="0"]{--pc:var(--player-1,var(--accent))}
+#ctrls[data-p="1"]{--pc:var(--player-2,var(--accent))}
+#ctrls[data-st="swap"]{--pc:var(--tile-swap-ring,#4fa8c7)}
+#dockMain,#toolRow{display:flex;align-items:stretch}
+#ctrls .pts{direction:ltr;unicode-bidi:isolate;font:700 .86em/1 var(--font);font-variant-numeric:tabular-nums;padding:.32em .6em;border-radius:99px;background:#1d130d38;color:inherit}
+#ctrls .pts[hidden]{display:none}
+#ctrls .pts.tick{animation:ptsTick .32s cubic-bezier(.3,1.7,.5,1)}
+@keyframes ptsTick{from{transform:scale(.6);opacity:.4}}
+
+/* ── the buttons, flat and quiet (dock, and the Game Tools module of the Floating Workspace) ── */
+:is(#ctrls,#tools) .btn:not(#bSubmit){background:transparent;border-color:transparent;box-shadow:none;color:var(--btn-text);transition:background .15s,transform .12s,opacity .2s}
+:is(#ctrls,#tools) .btn:not(#bSubmit):hover:not(:disabled){background:color-mix(in srgb,var(--text-main) 12%,transparent);filter:none}
+:is(#ctrls,#tools) .btn:not(#bSubmit):active:not(:disabled){transform:scale(.92)}
+:is(#ctrls,#tools) .btn:disabled{opacity:.3;border-style:solid}
+:is(#ctrls,#tools) .btn.danger:not(#bSubmit){color:color-mix(in srgb,var(--btn-danger-1) 70%,var(--text-main))}
+#ctrls #bSubmit{background:linear-gradient(var(--btn-main-1),var(--btn-main-2));color:var(--btn-main-text);border-color:transparent;gap:.55em}
+#ctrls #bCancel{color:color-mix(in srgb,var(--btn-danger-1) 60%,var(--text-main))}
+#ctrls .btn:focus-visible,#tools .btn:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+
+/* ── Floating Workspace: wrappers vanish, buttons show / hide by state ── */
+html[data-floating="true"] #ctrls :is(#dockMain,#toolRow){display:contents}
+html[data-floating="true"] #ctrls[data-st="idle"] :is(#bSubmit,#bCancel),
+html[data-floating="true"] #ctrls:not([data-st="idle"]) :is(#bSwap,#bPass,#bUndo){display:none}
+html[data-floating="true"] #ctrls[data-st]:not([data-st="idle"]) #bSubmit{box-shadow:0 0 14px color-mix(in srgb,var(--accent) 45%,transparent)}
+html[data-floating="true"] #ctrls[data-wait="true"] .btn{opacity:.3}
+
+/* ── Default layouts: the glass dock ── */
+html:not([data-floating="true"]) body #ctrls{position:relative;display:flex;align-items:stretch;gap:0;padding:5px;grid-template-columns:none;min-height:calc(58px*var(--btn-scale,1));
+  border-radius:20px;border:1px solid var(--panel-line);background:linear-gradient(color-mix(in srgb,var(--panel-bg) 86%,var(--text-main) 5%),var(--panel-bg));
+  box-shadow:0 10px 24px #0005,inset 0 1px 0 #ffffff12;transition:border-color .35s,box-shadow .35s}
+html:not([data-floating="true"]) body #ctrls[data-st="move"],html:not([data-floating="true"]) body #ctrls[data-st="swap"]{border-color:color-mix(in srgb,var(--pc) 60%,var(--panel-line));box-shadow:0 10px 26px #0006,0 0 22px color-mix(in srgb,var(--pc) 22%,transparent),inset 0 1px 0 #ffffff12}
+/* the edge light: whose turn it is, without a word */
+html:not([data-floating="true"]) body #ctrls::after{content:"";position:absolute;inset-inline:26px;inset-block-end:-1px;height:2px;border-radius:2px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--pc),transparent);animation:dockBreath 3.4s ease-in-out infinite;transition:opacity .4s}
+html:not([data-floating="true"]) body #ctrls[data-wait="true"]::after{opacity:0;animation:none}
+@keyframes dockBreath{50%{opacity:.3}}
+
+html:not([data-floating="true"]) body #dockMain{flex:1 1 auto;min-width:0;gap:2px}
+html:not([data-floating="true"]) body #ctrls .btn{flex:0 0 auto;width:var(--bw);min-width:0;min-height:calc(46px*var(--btn-scale,1));padding:0;border-radius:15px;
+  transition:width .32s var(--ez),flex-grow .32s var(--ez),opacity .22s,margin .32s var(--ez),background .15s,transform .12s,visibility 0s}
+html:not([data-floating="true"]) body #ctrls .btn .ic{width:1.5em;height:1.5em}
+html:not([data-floating="true"]) body #ctrls #bCancel{margin-inline-end:4px}
+html:not([data-floating="true"]) body #ctrls[data-st="move"] #bSubmit,html:not([data-floating="true"]) body #ctrls[data-st="swap"] #bSubmit{flex:1 1 0;width:auto;
+  box-shadow:0 4px 18px color-mix(in srgb,var(--accent) 40%,transparent)}
+html:not([data-floating="true"]) body #ctrls[data-st="swap"] #bSubmit{box-shadow:0 4px 18px color-mix(in srgb,var(--pc) 45%,transparent)}
+/* folded away: zero width, transparent, out of the tab order (visibility flips after the fold finishes) */
+html:not([data-floating="true"]) body #ctrls[data-st="idle"] :is(#bSubmit,#bCancel),
+html:not([data-floating="true"]) body #ctrls:not([data-st="idle"]) :is(#bSwap,#bPass,#bUndo){width:0;flex:0 0 0;opacity:0;margin:0;visibility:hidden;pointer-events:none;transition-delay:0s,0s,0s,0s,0s,0s,.32s}
+
+/* the tools: small, faded, at the far end */
+html:not([data-floating="true"]) body #toolRow{flex:0 1 auto;min-width:0;gap:1px;margin-inline-start:auto;padding-inline-start:7px;position:relative;overflow:hidden;max-width:320px;opacity:.55;
+  transition:max-width .32s var(--ez),opacity .22s,padding .32s var(--ez),visibility 0s}
+html:not([data-floating="true"]) body #toolRow::before{content:"";flex:none;align-self:center;width:1px;height:24px;margin-inline-end:5px;background:var(--panel-line)}
+html:not([data-floating="true"]) body #toolRow:is(:hover,:focus-within){opacity:1}
+html:not([data-floating="true"]) body #toolRow .btn{flex:0 1 var(--tw);width:var(--tw);min-width:26px;border-radius:12px}
+html:not([data-floating="true"]) body #toolRow .btn .ic{width:1.2em;height:1.2em}
+html:not([data-floating="true"]) body #ctrls:not([data-st="idle"]) #toolRow{max-width:0;padding:0;opacity:0;visibility:hidden;pointer-events:none;transition-delay:0s,0s,0s,.32s}
+html:not([data-floating="true"]) body #ctrls #bLog[aria-expanded="true"]{background:color-mix(in srgb,var(--accent) 22%,transparent);outline:0}
+
+@media (prefers-reduced-motion:reduce){#ctrls *,#ctrls::after{animation:none!important;transition-duration:.01s!important}}
